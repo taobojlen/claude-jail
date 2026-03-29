@@ -1,4 +1,4 @@
-# claude-agent
+# claude-jail
 
 A sandboxed Docker container for running a persistent Claude Code agent. Claude has full sudo access inside the container but cannot escape it.
 
@@ -9,7 +9,7 @@ A sandboxed Docker container for running a persistent Claude Code agent. Claude 
 docker compose up --build -d
 
 # Attach to the Claude session
-docker attach claude-agent-claude-1
+docker attach claude-jail-claude-1
 ```
 
 ## First run
@@ -17,7 +17,7 @@ docker attach claude-agent-claude-1
 On the very first launch, Claude Code has no credentials:
 
 1. `docker compose up --build -d`
-2. `docker attach claude-agent-claude-1`
+2. `docker attach claude-jail-claude-1`
 3. Claude will prompt you to log in — run `/login` and select option 1 ("Claude account with subscription")
 4. Follow the URL in your browser and authenticate. **Important:** The login URL may wrap in the terminal — remove any spaces inserted by line wrapping before pasting into your browser, or the redirect will fail.
 
@@ -51,7 +51,7 @@ Claude can send and receive Signal messages via a two-way channel. Signal-cli ru
 3. Restart and verify:
    ```bash
    docker compose restart
-   docker attach claude-agent-claude-1
+   docker attach claude-jail-claude-1
    ```
    Run `/mcp` in Claude — the `signal` server should show as connected.
 
@@ -100,7 +100,7 @@ docker compose run -e PROJECT_DIR=/home/claude/myproject claude
 
 ```bash
 # Attach to a running container
-docker attach claude-agent-claude-1
+docker attach claude-jail-claude-1
 
 # Stop (won't auto-restart)
 docker compose stop
