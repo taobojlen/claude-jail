@@ -2,6 +2,7 @@ FROM ubuntu:24.04
 
 RUN apt-get update && apt-get install -y \
     curl \
+    unzip \
     sudo \
     git \
     cron \
@@ -19,6 +20,12 @@ RUN git config --global init.defaultBranch main \
     && git config --global user.email "noreply@anthropic.com"
 RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/claude/.local/bin:$PATH"
+
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/home/claude/.bun/bin:$PATH"
+
+COPY --chown=claude:claude signal-channel/ /home/claude/signal-channel/
+RUN cd /home/claude/signal-channel && bun install
 
 COPY --chown=claude:claude entrypoint.sh /home/claude/entrypoint.sh
 RUN chmod +x /home/claude/entrypoint.sh

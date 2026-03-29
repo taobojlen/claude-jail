@@ -23,6 +23,44 @@ On the very first launch, Claude Code has no credentials:
 
 OAuth tokens persist in a named Docker volume (`claude-home`). You only need to log in once. On subsequent runs, just `docker compose up -d` and attach.
 
+## Signal integration
+
+Claude can send and receive Signal messages via a two-way channel. Signal-cli runs in a separate container so Claude cannot access the Signal account keys.
+
+### Setup
+
+1. Create a `.env` file:
+   ```
+   SIGNAL_ACCOUNT=+12025551234
+   SIGNAL_ALLOWED_SENDERS=+12025559876
+   ```
+
+2. Register or copy an existing signal-cli account:
+   ```bash
+   # Option A: Copy existing signal-cli data into the volume
+   docker compose up --build -d
+   docker compose cp /path/to/signal-cli/data/. signal:/home/signal/.local/share/signal-cli/
+
+   # Option B: Register a new number
+   docker compose up --build -d
+   docker compose exec signal bash
+   signal-cli -a +NUMBER register   # may need CAPTCHA, see signal-cli wiki
+   signal-cli -a +NUMBER verify CODE
+   ```
+
+3. Restart and verify:
+   ```bash
+   docker compose restart
+   docker attach claude-agent-claude-1
+   ```
+   Run `/mcp` in Claude — the `signal` server should show as connected.
+
+4. Send a message from your phone to the registered number. It should appear in Claude's session. Claude replies via the `signal_reply` tool.
+
+### Security
+
+Signal-cli runs in its own container on an internal network. Claude communicates with it over HTTP but cannot access the Signal account keys, send messages to numbers outside the allowlist, or register/deregister accounts.
+
 ## Architecture
 
 - **Non-root user** (`claude`) with passwordless sudo — full control inside the container, no escape
@@ -30,7 +68,8 @@ OAuth tokens persist in a named Docker volume (`claude-home`). You only need to 
 - **cron** daemon running — Claude can create its own scheduled tasks
 - **`--dangerously-skip-permissions`** — all tool permission prompts bypassed
 - **`CLAUDE_CODE_DISABLE_CRON=1`** — disables Claude Code's built-in cron (system cron is used instead)
-- **Named volume** on `/home/claude` — everything persists (auth, project files, cron state)
+- **Signal channel** — two-way messaging via signal-cli in a separate container
+- **Named volumes** — `claude-home` for Claude state, `signal-data` for Signal account keys
 
 ## Security
 
@@ -49,6 +88,8 @@ The container is locked down to prevent escape while giving Claude full freedom 
 | Environment variable | Default | Description |
 |---|---|---|
 | `PROJECT_DIR` | `/home/claude/project` | Working directory for Claude |
+| `SIGNAL_ACCOUNT` | (none) | Phone number registered with signal-cli |
+| `SIGNAL_ALLOWED_SENDERS` | (none) | Comma-separated phone numbers allowed to message |
 
 ```bash
 # Use a custom project directory
