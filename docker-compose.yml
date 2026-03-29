@@ -1,0 +1,32 @@
+services:
+  claude:
+    build: .
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    volumes:
+      - claude-home:/home/claude
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    networks:
+      - sandbox
+    read_only: false
+    tmpfs:
+      - /tmp:size=512m
+    mem_limit: 4g
+    cpus: 2
+    pids_limit: 512
+
+networks:
+  sandbox:
+    driver: bridge
+    internal: false
+
+volumes:
+  claude-home:
