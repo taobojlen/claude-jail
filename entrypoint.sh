@@ -42,11 +42,6 @@ else
 EOF
 fi
 
-# Install Signal channel MCP config into project directory
-if [ -f /home/claude/signal-channel/.mcp.json ] && [ ! -f "$PROJECT_DIR/.mcp.json" ]; then
-    cp /home/claude/signal-channel/.mcp.json "$PROJECT_DIR/.mcp.json"
-fi
-
 # Suppress "WARNING: running in Bypass Permissions mode" dialog
 mkdir -p ~/.claude
 cat > ~/.claude/settings.json << 'EOF'
@@ -63,5 +58,5 @@ cd "$PROJECT_DIR"
 export CLAUDE_CODE_DISABLE_CRON=1
 
 exec claude --dangerously-skip-permissions \
-    --dangerously-load-development-channels server:signal \
+    --dangerously-load-development-channels \
     "$@"

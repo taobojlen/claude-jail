@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "signal": {
-      "command": "bun",
-      "args": ["/home/claude/signal-channel/signal-channel.ts"]
-    }
-  }
-}

@@ -14,40 +14,12 @@ services:
       - FOWNER
       - SETGID
       - SETUID
-    networks:
-      - sandbox
-      - bridge
     read_only: false
     tmpfs:
       - /tmp:size=512m
     mem_limit: 4g
     cpus: 2
     pids_limit: 512
-
-  signal:
-    build: signal-bridge/
-    restart: unless-stopped
-    volumes:
-      - ./signal-data:/home/signal/.local/share/signal-cli
-    environment:
-      - SIGNAL_ACCOUNT
-      - SIGNAL_ALLOWED_SENDERS
-    cap_drop:
-      - ALL
-    networks:
-      - sandbox
-      - bridge
-    mem_limit: 1g
-    cpus: 1
-    pids_limit: 128
-
-networks:
-  sandbox:
-    driver: bridge
-    internal: false
-  bridge:
-    driver: bridge
-    internal: true
 
 volumes:
   claude-home:
