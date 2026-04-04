@@ -4,6 +4,7 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
+    user: "1001:1001"
     volumes:
       - claude-home:/home/claude
     cap_drop:
