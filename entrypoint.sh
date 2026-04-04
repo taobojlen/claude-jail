@@ -4,7 +4,7 @@ set -e
 # Fix ownership on first run (Docker creates named volumes as root)
 sudo chown claude:claude /home/claude
 
-PROJECT_DIR="${PROJECT_DIR:-/home/claude/project}"
+PROJECT_DIR="${PROJECT_DIR:-/home/claude/workspace}"
 
 # git init suppresses workspace trust prompt (directories with .git never trigger it)
 mkdir -p "$PROJECT_DIR"
@@ -18,6 +18,8 @@ if [ -f ~/.claude.json ]; then
     tmp=$(mktemp)
     jq --arg dir "$PROJECT_DIR" '
       .hasCompletedOnboarding = true |
+      .remoteControlAtStartup = true |
+      .remoteDialogSeen = true |
       .projects[$dir] = (.projects[$dir] // {}) * {
         hasTrustDialogAccepted: true,
         hasCompletedProjectOnboarding: true,
@@ -29,6 +31,8 @@ else
     cat > ~/.claude.json << EOF
 {
   "hasCompletedOnboarding": true,
+  "remoteControlAtStartup": true,
+  "remoteDialogSeen": true,
   "shiftEnterKeyBindingInstalled": true,
   "projects": {
     "$PROJECT_DIR": {
@@ -57,6 +61,10 @@ cd "$PROJECT_DIR"
 
 export CLAUDE_CODE_DISABLE_CRON=1
 
-exec claude --dangerously-skip-permissions \
-    --dangerously-load-development-channels \
-    "$@"
+if [ "${1:-}" = "login" ]; then
+    claude
+else
+    exec claude remote-control \
+        --permission-mode bypassPermissions \
+        --spawn=same-dir
+fi

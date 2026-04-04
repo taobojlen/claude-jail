@@ -21,9 +21,9 @@ RUN git config --global init.defaultBranch main \
 RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/claude/.local/bin:$PATH"
 
-COPY --chown=claude:claude entrypoint.sh /home/claude/entrypoint.sh
-RUN chmod +x /home/claude/entrypoint.sh
+COPY --chown=claude:claude entrypoint.sh /opt/entrypoint.sh
+RUN chmod +x /opt/entrypoint.sh
 
 WORKDIR /home/claude
 
-ENTRYPOINT ["tini", "--", "/home/claude/entrypoint.sh"]
+ENTRYPOINT ["tini", "--", "/opt/entrypoint.sh"]
