@@ -106,7 +106,7 @@ describe("scheduler-channel", () => {
     const spy = spyOn(server, "notification").mockResolvedValue(undefined as any);
     const httpServer = startHttpServer(18791);
     try {
-      expect(httpServer.hostname).toBe("127.0.0.1");
+      expect(httpServer.hostname).toBe("0.0.0.0");
     } finally {
       httpServer.stop(true);
       spy.mockRestore();

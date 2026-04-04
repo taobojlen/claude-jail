@@ -207,7 +207,7 @@ export function getPort(): number {
 export function startHttpServer(port: number) {
   return Bun.serve({
     port,
-    hostname: "127.0.0.1",
+    hostname: "0.0.0.0",
     async fetch(req) {
       if (req.method !== "POST") {
         return new Response("method not allowed", { status: 405 });

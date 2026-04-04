@@ -22,17 +22,23 @@ docker compose down
 docker compose down -v
 ```
 
-There are no test suites, linters, or build steps.
+Tests: `cd scheduler/api && bun test` and `cd scheduler/channel && bun test`
 
 ## Architecture
 
-Single Docker container (Ubuntu 24.04) running Claude Code in Remote Control server mode with `--dangerously-skip-permissions`. Users interact via claude.ai/code or the Claude mobile app. Uses tini as PID 1, system cron enabled, Claude Code built-in cron disabled (`CLAUDE_CODE_DISABLE_CRON=1`).
+Two Docker containers orchestrated via docker-compose:
+
+1. **claude** (Ubuntu 24.04) — Claude Code in Remote Control server mode with `--dangerously-skip-permissions`. Users interact via claude.ai/code or the Claude mobile app. Uses tini as PID 1, Claude Code built-in cron disabled (`CLAUDE_CODE_DISABLE_CRON=1`). Includes a scheduler MCP channel that provides `scheduler_add_task`, `scheduler_remove_task`, `scheduler_list_tasks` tools.
+
+2. **scheduler** (Bun) — Lightweight task scheduler. HTTP API for CRUD on tasks, 10-second poll loop that fires due tasks by POSTing to the channel. Stores tasks in `/data/tasks.json`. Supports cron expressions, intervals, and one-shot timestamps.
 
 ### Key files
 
-- `Dockerfile` — Container image: Ubuntu 24.04, Claude Code CLI install, non-root `claude` user with passwordless sudo
-- `entrypoint.sh` — Container init: volume ownership fix, git init, `.claude.json` config patching, cron start, launches Claude Code in remote-control mode (or interactive mode with `login` arg)
-- `docker-compose.yml` — Service definition with security constraints (capability dropping, resource limits)
+- `Dockerfile` — Container image: Ubuntu 24.04, Claude Code CLI + Bun install, non-root `claude` user with passwordless sudo
+- `entrypoint.sh` — Container init: volume ownership fix, git init, `.claude.json` config patching, MCP channel registration, launches Claude Code in remote-control mode (or interactive mode with `login` arg)
+- `docker-compose.yml` — Two services (claude + scheduler) with security constraints (capability dropping, resource limits)
+- `scheduler/api/` — Scheduler container: HTTP API + poll loop (Bun)
+- `scheduler/channel/` — MCP channel that proxies tool calls to the scheduler API (runs inside claude container)
 
 ### Security constraints
 
@@ -44,3 +50,5 @@ Single Docker container (Ubuntu 24.04) running Claude Code in Remote Control ser
 ### Environment variables
 
 - `PROJECT_DIR` — Claude's working directory inside container (default: `/home/claude/workspace`)
+- `SCHEDULER_API_PORT` — Scheduler HTTP API port (default: `8791`)
+- `SCHEDULER_CHANNEL_PORT` — Channel HTTP listener port (default: `8790`)

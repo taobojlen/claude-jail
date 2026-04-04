@@ -61,6 +61,7 @@ export function computeNextRun(scheduleType: string, scheduleValue: string, from
 export async function pollTick(now: Date = new Date()): Promise<void> {
   const store = await loadTasks();
   const toRemove: string[] = [];
+  let changed = false;
 
   for (const task of store.tasks) {
     if (new Date(task.next_run) <= now) {
@@ -74,11 +75,13 @@ export async function pollTick(now: Date = new Date()): Promise<void> {
           },
           body: JSON.stringify({ prompt: task.prompt }),
         });
+        console.log(`Fired task ${task.id} (${task.name})`);
       } catch (err) {
         console.error(`Failed to fire task ${task.id}:`, err);
       }
 
       task.last_run = now.toISOString();
+      changed = true;
 
       if (task.schedule_type === "once") {
         toRemove.push(task.id);
@@ -92,7 +95,9 @@ export async function pollTick(now: Date = new Date()): Promise<void> {
     store.tasks = store.tasks.filter((t) => !toRemove.includes(t.id));
   }
 
-  await saveTasks(store);
+  if (changed) {
+    await saveTasks(store);
+  }
 }
 
 const server = Bun.serve({
@@ -159,5 +164,15 @@ const pollInterval = setInterval(() => {
 }, POLL_INTERVAL);
 
 console.log(`Scheduler API listening on 0.0.0.0:${SCHEDULER_API_PORT}`);
+
+function shutdown() {
+  console.log("Shutting down...");
+  clearInterval(pollInterval);
+  server.stop();
+  process.exit(0);
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 export { server, pollInterval };

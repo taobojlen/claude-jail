@@ -50,21 +50,55 @@ fi
 mkdir -p ~/.claude
 cat > ~/.claude/settings.json << 'EOF'
 {
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "permissions": {
+    "deny": ["RemoteTrigger", "CronCreate", "CronDelete", "CronList"]
+  }
 }
 EOF
 
-# Start cron daemon so the agent can schedule cron tasks
-sudo cron
+# System-wide instructions for the agent
+cat > ~/.claude/CLAUDE.md << 'EOF'
+# Scheduling Tasks
+
+Do NOT use RemoteTrigger, CronCreate, CronDelete, CronList, or the /schedule and /loop skills. They are disabled.
+
+Instead, use the scheduler MCP tools to manage recurring and one-shot tasks:
+
+- `scheduler_add_task` — schedule a task (supports `cron`, `interval_seconds`, or `at` for one-shot)
+- `scheduler_remove_task` — remove a task by its ID
+- `scheduler_list_tasks` — list all scheduled tasks
+
+When a scheduled task fires, it arrives as a channel message. Execute the prompt in the message body.
+EOF
+
+# Register the scheduler MCP channel so Claude Code can find it
+mkdir -p "$PROJECT_DIR"
+cat > "$PROJECT_DIR/.mcp.json" << EOF
+{
+  "mcpServers": {
+    "scheduler": {
+      "command": "/opt/scheduler-channel/scheduler-channel",
+      "args": [],
+      "env": {
+        "SCHEDULER_API_PORT": "${SCHEDULER_API_PORT:-8791}",
+        "SCHEDULER_CHANNEL_PORT": "${SCHEDULER_CHANNEL_PORT:-8790}"
+      }
+    }
+  }
+}
+EOF
 
 cd "$PROJECT_DIR"
 
 export CLAUDE_CODE_DISABLE_CRON=1
 
 if [ "${1:-}" = "login" ]; then
-    claude
+    exec claude
 else
-    exec claude remote-control \
+    # Send Enter to auto-accept the development channels confirmation prompt
+    (sleep 3 && printf '\n') &
+    exec claude \
         --permission-mode bypassPermissions \
-        --spawn=same-dir
+        --dangerously-load-development-channels server:scheduler
 fi

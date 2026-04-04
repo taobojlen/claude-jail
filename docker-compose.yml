@@ -7,6 +7,11 @@ services:
     user: "1001:1001"
     volumes:
       - claude-home:/home/claude
+    environment:
+      - SCHEDULER_CHANNEL_PORT=${SCHEDULER_CHANNEL_PORT:-8790}
+      - SCHEDULER_API_PORT=${SCHEDULER_API_PORT:-8791}
+    depends_on:
+      - scheduler
     cap_drop:
       - ALL
     cap_add:
@@ -22,5 +27,18 @@ services:
     cpus: 2
     pids_limit: 512
 
+  scheduler:
+    build: ./scheduler/api
+    restart: unless-stopped
+    volumes:
+      - scheduler-data:/data
+    environment:
+      - SCHEDULER_API_PORT=${SCHEDULER_API_PORT:-8791}
+      - SCHEDULER_CHANNEL_PORT=${SCHEDULER_CHANNEL_PORT:-8790}
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+
 volumes:
   claude-home:
+  scheduler-data:
