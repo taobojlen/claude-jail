@@ -1,0 +1,28 @@
+{
+  "skipDangerousModePermissionPrompt": true,
+  "permissions": {
+    "deny": ["RemoteTrigger", "CronCreate", "CronDelete", "CronList"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/hooks/matrix-typing.sh true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/hooks/matrix-typing.sh false"
+          }
+        ]
+      }
+    ]
+  }
+}

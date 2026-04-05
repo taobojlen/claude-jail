@@ -34,14 +34,6 @@ jq --arg dir "$PROJECT_DIR" --argjson rc "$REMOTE_CONTROL" '
 
 # Suppress "WARNING: running in Bypass Permissions mode" dialog
 mkdir -p ~/.claude
-cat > ~/.claude/settings.json << 'EOF'
-{
-  "skipDangerousModePermissionPrompt": true,
-  "permissions": {
-    "deny": ["RemoteTrigger", "CronCreate", "CronDelete", "CronList"]
-  }
-}
-EOF
 
 # Register MCP channels so Claude Code can find them
 cat > "$PROJECT_DIR/.mcp.json" << EOF

@@ -10,6 +10,8 @@ services:
       - ./dream:/opt/dream
       - ./entrypoint.sh:/opt/entrypoint.sh:ro
       - ./agent-CLAUDE.md:/home/ubuntu/.claude/CLAUDE.md:ro
+      - ./settings.json:/home/ubuntu/.claude/settings.json:ro
+      - ./hooks:/opt/hooks:ro
     environment:
       - SCHEDULER_CHANNEL_PORT=${SCHEDULER_CHANNEL_PORT:-8790}
       - SCHEDULER_API_PORT=${SCHEDULER_API_PORT:-8791}
