@@ -1,8 +1,13 @@
 {
   "name": "matrix-api",
   "version": "1.0.0",
+  "trustedDependencies": [
+    "@matrix-org/matrix-sdk-crypto-nodejs",
+    "@matrix-org/matrix-sdk-crypto-nodejs-linux-x64-gnu"
+  ],
   "dependencies": {
-    "matrix-bot-sdk": "^0.7.1"
+    "matrix-bot-sdk": "^0.7.1",
+    "@matrix-org/matrix-sdk-crypto-nodejs": "^0.2.0-beta.1"
   },
   "devDependencies": {
     "@types/bun": "latest"
