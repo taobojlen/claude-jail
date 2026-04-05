@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     git \
     tini \
     jq \
+    expect \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -s /bin/bash claude \

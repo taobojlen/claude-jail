@@ -107,10 +107,16 @@ fi
 if [ "${1:-}" = "login" ]; then
     exec claude
 else
-    # Send Enter to auto-accept the development channels confirmation prompt
-    (sleep 3 && printf '\n') &
-    exec claude \
-        --permission-mode bypassPermissions \
-        --dangerously-load-development-channels server:scheduler \
-        $RESUME_FLAG
+    # Auto-accept the development channels confirmation prompt.
+    # Pattern matching won't work (Ink TUI uses ANSI escapes), so we
+    # wait for the prompt to render then send Enter.
+    cat > /tmp/accept-prompt.exp <<EXPECT
+set timeout -1
+log_user 1
+spawn claude --permission-mode bypassPermissions --dangerously-load-development-channels server:scheduler $RESUME_FLAG
+sleep 10
+send "\r"
+expect eof
+EXPECT
+    exec expect /tmp/accept-prompt.exp
 fi
