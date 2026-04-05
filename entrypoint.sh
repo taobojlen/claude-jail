@@ -93,27 +93,16 @@ cd "$PROJECT_DIR"
 
 export CLAUDE_CODE_DISABLE_CRON=1
 
-# Find the oldest session to resume (so one-off shells don't displace the main session)
-RESUME_FLAG=""
-ENCODED_DIR=$(echo "$PROJECT_DIR" | sed 's|/|-|g; s|^-||')
-SESSION_DIR="$HOME/.claude/projects/$ENCODED_DIR"
-if [ -d "$SESSION_DIR" ]; then
-    OLDEST_SESSION=$(ls -tr "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1 | xargs -I{} basename {} .jsonl)
-    if [ -n "$OLDEST_SESSION" ]; then
-        RESUME_FLAG="--resume $OLDEST_SESSION"
-    fi
-fi
-
 if [ "${1:-}" = "login" ]; then
     exec claude
 else
     # Auto-accept the development channels confirmation prompt.
     # Pattern matching won't work (Ink TUI uses ANSI escapes), so we
     # wait for the prompt to render then send Enter.
-    cat > /tmp/accept-prompt.exp <<EXPECT
+    cat > /tmp/accept-prompt.exp <<'EXPECT'
 set timeout -1
 log_user 1
-spawn claude --permission-mode bypassPermissions --dangerously-load-development-channels server:scheduler $RESUME_FLAG
+spawn claude --permission-mode bypassPermissions --dangerously-load-development-channels server:scheduler
 sleep 10
 send "\r"
 expect eof
