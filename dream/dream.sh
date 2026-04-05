@@ -44,7 +44,7 @@ RENDERED="${RENDERED//__ADDITIONAL_CONTEXT__/$FILE_LIST}"
 
 # --- 5. Run the dream ---
 log "starting dream..."
-if (cd "$PROJECT_DIR" && claude --print --verbose --output-format stream-json --dangerously-skip-permissions --model haiku "$RENDERED"); then
+if (cd "$PROJECT_DIR" && /home/ubuntu/.local/bin/claude --print --verbose --output-format stream-json --dangerously-skip-permissions --model haiku "$RENDERED"); then
   # --- 6. Update timestamp on success ---
   touch "$LAST_RUN_FILE"
   log "dream complete"
