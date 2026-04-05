@@ -66,9 +66,15 @@ To search past conversations, use grep:
 `grep -rn "search term" ~/.claude/projects/-home-ubuntu-workspace/ --include="*.jsonl" | tail -50`
 
 A dream process runs every 2 hours to consolidate important information into your memory files. You do not need to manually review transcripts unless searching for specific details.
+
+# Matrix Messages
+
+When you receive a message from the matrix channel, it is a DM from your user on Matrix.
+Always reply using the \`reply\` tool from the matrix server, passing the \`room_id\` from the channel tag.
+Be conversational and helpful.
 EOF
 
-# Register the scheduler MCP channel so Claude Code can find it
+# Register MCP channels so Claude Code can find them
 cat > "$PROJECT_DIR/.mcp.json" << EOF
 {
   "mcpServers": {
@@ -78,6 +84,14 @@ cat > "$PROJECT_DIR/.mcp.json" << EOF
       "env": {
         "SCHEDULER_API_PORT": "${SCHEDULER_API_PORT:-8791}",
         "SCHEDULER_CHANNEL_PORT": "${SCHEDULER_CHANNEL_PORT:-8790}"
+      }
+    },
+    "matrix": {
+      "command": "/opt/matrix-channel/matrix-channel",
+      "args": [],
+      "env": {
+        "MATRIX_API_PORT": "${MATRIX_API_PORT:-8793}",
+        "MATRIX_CHANNEL_PORT": "${MATRIX_CHANNEL_PORT:-8792}"
       }
     }
   }
@@ -104,7 +118,7 @@ else
     cat > /tmp/accept-prompt.exp <<'EXPECT'
 set timeout -1
 log_user 1
-spawn claude --model sonnet --permission-mode bypassPermissions --remote-control-session-name-prefix agent --dangerously-load-development-channels server:scheduler
+spawn claude --model sonnet --permission-mode bypassPermissions --remote-control-session-name-prefix agent --dangerously-load-development-channels server:scheduler server:matrix
 sleep 10
 send "\r"
 expect eof

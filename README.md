@@ -42,6 +42,11 @@ Two Docker containers orchestrated via docker-compose:
    - Stores tasks in `/data/tasks.json`
    - Supports cron expressions, intervals, and one-shot timestamps
 
+3. **matrix** (Bun) — Matrix chat bridge with E2EE
+   - Connects to a Matrix homeserver and listens for DMs from a configured user
+   - Forwards messages to Claude via an MCP channel; Claude replies using the `reply` tool
+   - Crypto state persisted in a named volume (`matrix-data`)
+
 ## Security
 
 The container is locked down to prevent escape while giving Claude full freedom inside:
@@ -54,6 +59,23 @@ The container is locked down to prevent escape while giving Claude full freedom 
 | Filesystem | `/tmp` as tmpfs (512MB) |
 | Restart | `unless-stopped` — auto-restarts on crash, stays down on explicit stop |
 
+## Matrix bridge setup
+
+The Matrix bridge lets you DM your Claude bot over an E2EE Matrix chat.
+
+1. **Create a bot account** on your Matrix homeserver (or use an existing one)
+2. **Get an access token** — in Element: Settings → Help & About → Access Token
+3. **Configure environment** — copy `.env.example` to `.env` and fill in:
+   ```
+   MATRIX_HOMESERVER_URL=https://matrix.example.com
+   MATRIX_ACCESS_TOKEN=syt_your_access_token_here
+   MATRIX_USER_ID=@yourusername:example.com
+   ```
+4. **Start everything**: `docker compose up --build -d`
+5. **DM the bot** from your Matrix account — it auto-joins and starts forwarding messages to Claude
+
+The bot only responds to DMs from the configured `MATRIX_USER_ID`. Crypto keys persist across restarts in the `matrix-data` volume.
+
 ## Configuration
 
 | Environment variable | Default | Description |
@@ -61,6 +83,11 @@ The container is locked down to prevent escape while giving Claude full freedom 
 | `PROJECT_DIR` | `/home/ubuntu/workspace` | Working directory for Claude |
 | `SCHEDULER_API_PORT` | `8791` | Scheduler HTTP API port |
 | `SCHEDULER_CHANNEL_PORT` | `8790` | MCP channel HTTP listener port |
+| `MATRIX_HOMESERVER_URL` | — | Matrix homeserver URL (required for Matrix) |
+| `MATRIX_ACCESS_TOKEN` | — | Bot's Matrix access token (required for Matrix) |
+| `MATRIX_USER_ID` | — | Your Matrix user ID to accept DMs from (required for Matrix) |
+| `MATRIX_API_PORT` | `8793` | Matrix bot HTTP API port |
+| `MATRIX_CHANNEL_PORT` | `8792` | Matrix MCP channel HTTP listener port |
 
 ```bash
 # Use a custom project directory

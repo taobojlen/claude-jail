@@ -1,0 +1,15 @@
+{
+  "name": "matrix-channel",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "start": "bun install --no-summary && bun matrix-channel.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

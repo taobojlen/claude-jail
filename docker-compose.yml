@@ -12,8 +12,11 @@ services:
     environment:
       - SCHEDULER_CHANNEL_PORT=${SCHEDULER_CHANNEL_PORT:-8790}
       - SCHEDULER_API_PORT=${SCHEDULER_API_PORT:-8791}
+      - MATRIX_CHANNEL_PORT=${MATRIX_CHANNEL_PORT:-8792}
+      - MATRIX_API_PORT=${MATRIX_API_PORT:-8793}
     depends_on:
       - scheduler
+      - matrix
     cap_drop:
       - ALL
     cap_add:
@@ -41,6 +44,22 @@ services:
     cpus: 0.5
     pids_limit: 64
 
+  matrix:
+    build: ./matrix/api
+    restart: unless-stopped
+    volumes:
+      - matrix-data:/data
+    environment:
+      - MATRIX_API_PORT=${MATRIX_API_PORT:-8793}
+      - MATRIX_CHANNEL_PORT=${MATRIX_CHANNEL_PORT:-8792}
+      - MATRIX_HOMESERVER_URL=${MATRIX_HOMESERVER_URL}
+      - MATRIX_ACCESS_TOKEN=${MATRIX_ACCESS_TOKEN}
+      - MATRIX_USER_ID=${MATRIX_USER_ID}
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+
 volumes:
   claude-home:
   scheduler-data:
+  matrix-data:

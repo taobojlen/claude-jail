@@ -1,9 +1,16 @@
-FROM oven/bun:latest AS channel-build
+FROM oven/bun:latest AS scheduler-channel-build
 WORKDIR /app
 COPY scheduler/channel/package.json scheduler/channel/bun.lock* ./
 RUN bun install
 COPY scheduler/channel/scheduler-channel.ts .
 RUN bun build --compile --outfile=scheduler-channel scheduler-channel.ts
+
+FROM oven/bun:latest AS matrix-channel-build
+WORKDIR /app
+COPY matrix/channel/package.json matrix/channel/bun.lock* ./
+RUN bun install
+COPY matrix/channel/matrix-channel.ts .
+RUN bun build --compile --outfile=matrix-channel matrix-channel.ts
 
 FROM ubuntu:24.04
 
@@ -29,7 +36,8 @@ RUN git config --global init.defaultBranch main \
 RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/ubuntu/.local/bin:$PATH"
 
-COPY --from=channel-build /app/scheduler-channel /opt/scheduler-channel/scheduler-channel
+COPY --from=scheduler-channel-build /app/scheduler-channel /opt/scheduler-channel/scheduler-channel
+COPY --from=matrix-channel-build /app/matrix-channel /opt/matrix-channel/matrix-channel
 
 COPY --chown=ubuntu:ubuntu dream/ /opt/dream/
 RUN chmod +x /opt/dream/dream.sh
