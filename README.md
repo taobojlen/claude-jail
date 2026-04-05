@@ -27,13 +27,20 @@ OAuth tokens persist in a named Docker volume (`claude-home`). You only need to 
 
 ## Architecture
 
-- **Non-root user** (`claude`) with passwordless sudo — full control inside the container, no escape
-- **tini** as PID 1 — reaps zombies, forwards signals
-- **cron** daemon running — Claude can create its own scheduled tasks
-- **Remote Control server mode** — users interact via claude.ai/code or the Claude mobile app
-- **`--dangerously-skip-permissions`** — all tool permission prompts bypassed
-- **`CLAUDE_CODE_DISABLE_CRON=1`** — disables Claude Code's built-in cron (system cron is used instead)
-- **Named volume** — `claude-home` for Claude state
+Two Docker containers orchestrated via docker-compose:
+
+1. **claude** (Ubuntu 24.04) — Claude Code in Remote Control server mode
+   - **Non-root user** (`claude`) with passwordless sudo — full control inside the container, no escape
+   - **tini** as PID 1 — reaps zombies, forwards signals
+   - **`--permission-mode bypassPermissions`** — all tool permission prompts bypassed
+   - **Scheduler MCP channel** — provides `scheduler_add_task`, `scheduler_remove_task`, `scheduler_list_tasks` tools
+   - **cron** daemon — runs a dream process every 2 hours to consolidate conversation history into memory
+   - **Named volume** — `claude-home` for Claude state
+
+2. **scheduler** (Bun) — Lightweight task scheduler
+   - HTTP API for CRUD on tasks, 10-second poll loop that fires due tasks via the MCP channel
+   - Stores tasks in `/data/tasks.json`
+   - Supports cron expressions, intervals, and one-shot timestamps
 
 ## Security
 
@@ -52,6 +59,8 @@ The container is locked down to prevent escape while giving Claude full freedom 
 | Environment variable | Default | Description |
 |---|---|---|
 | `PROJECT_DIR` | `/home/claude/workspace` | Working directory for Claude |
+| `SCHEDULER_API_PORT` | `8791` | Scheduler HTTP API port |
+| `SCHEDULER_CHANNEL_PORT` | `8790` | MCP channel HTTP listener port |
 
 ```bash
 # Use a custom project directory
