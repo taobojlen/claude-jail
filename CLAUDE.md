@@ -34,7 +34,7 @@ Two Docker containers orchestrated via docker-compose:
 
 ### Key files
 
-- `Dockerfile` — Container image: Ubuntu 24.04, Claude Code CLI + Bun install, non-root `claude` user with passwordless sudo
+- `Dockerfile` — Container image: Ubuntu 24.04, Claude Code CLI + Bun install, non-root `ubuntu` user with passwordless sudo
 - `entrypoint.sh` — Container init: volume ownership fix, git init, `.claude.json` config patching, MCP channel registration, launches Claude Code in remote-control mode (or interactive mode with `login` arg)
 - `docker-compose.yml` — Two services (claude + scheduler) with security constraints (capability dropping, resource limits)
 - `scheduler/api/` — Scheduler container: HTTP API + poll loop (Bun)
@@ -49,6 +49,6 @@ Two Docker containers orchestrated via docker-compose:
 
 ### Environment variables
 
-- `PROJECT_DIR` — Claude's working directory inside container (default: `/home/claude/workspace`)
+- `PROJECT_DIR` — Claude's working directory inside container (default: `/home/ubuntu/workspace`)
 - `SCHEDULER_API_PORT` — Scheduler HTTP API port (default: `8791`)
 - `SCHEDULER_CHANNEL_PORT` — Channel HTTP listener port (default: `8790`)

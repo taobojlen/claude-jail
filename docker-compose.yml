@@ -4,9 +4,11 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
-    user: "1001:1001"
+    user: "1000:1000"
     volumes:
-      - claude-home:/home/claude
+      - claude-home:/home/ubuntu
+      - ./dream:/opt/dream
+      - ./entrypoint.sh:/opt/entrypoint.sh:ro
     environment:
       - SCHEDULER_CHANNEL_PORT=${SCHEDULER_CHANNEL_PORT:-8790}
       - SCHEDULER_API_PORT=${SCHEDULER_API_PORT:-8791}

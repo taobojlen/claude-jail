@@ -2,9 +2,9 @@
 set -e
 
 # Fix ownership on first run (Docker creates named volumes as root)
-sudo chown claude:claude /home/claude
+sudo chown ubuntu:ubuntu /home/ubuntu
 
-PROJECT_DIR="${PROJECT_DIR:-/home/claude/workspace}"
+PROJECT_DIR="${PROJECT_DIR:-/home/ubuntu/workspace}"
 
 # git init suppresses workspace trust prompt (directories with .git never trigger it)
 mkdir -p "$PROJECT_DIR"
@@ -60,10 +60,10 @@ When a scheduled task fires, it arrives as a channel message. Execute the prompt
 # Conversation History
 
 Full transcripts from all past sessions are stored as JSONL files at:
-`~/.claude/projects/-home-claude-workspace/`
+`~/.claude/projects/-home-ubuntu-workspace/`
 
 To search past conversations, use grep:
-`grep -rn "search term" ~/.claude/projects/-home-claude-workspace/ --include="*.jsonl" | tail -50`
+`grep -rn "search term" ~/.claude/projects/-home-ubuntu-workspace/ --include="*.jsonl" | tail -50`
 
 A dream process runs every 2 hours to consolidate important information into your memory files. You do not need to manually review transcripts unless searching for specific details.
 EOF
@@ -85,8 +85,11 @@ cat > "$PROJECT_DIR/.mcp.json" << EOF
 EOF
 
 # Install dream cron job (runs every 2 hours) and start cron daemon
-(echo "0 */2 * * * PROJECT_DIR=$PROJECT_DIR /opt/dream/dream.sh >> /tmp/dream.log 2>&1") | crontab -
+(echo "0 */2 * * * PROJECT_DIR=$PROJECT_DIR /opt/dream/dream.sh >> /home/ubuntu/.claude/logs/dream.log 2>&1") | crontab -
 sudo cron
+
+# Start supervisord for background services
+sudo supervisord -c /etc/supervisor/supervisord.conf
 
 cd "$PROJECT_DIR"
 

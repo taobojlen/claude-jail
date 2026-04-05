@@ -4,7 +4,7 @@ set -euo pipefail
 log() { echo "$(date -Iseconds) $1"; }
 
 # --- 1. Compute paths ---
-PROJECT_DIR="${PROJECT_DIR:-/home/claude/workspace}"
+PROJECT_DIR="${PROJECT_DIR:-/home/ubuntu/workspace}"
 SLUG=$(echo "$PROJECT_DIR" | sed 's|/|-|g')
 TRANSCRIPTS_DIR="$HOME/.claude/projects/${SLUG}"
 MEMORY_DIR="$HOME/.claude/projects/${SLUG}/memory"
@@ -44,7 +44,7 @@ RENDERED="${RENDERED//__ADDITIONAL_CONTEXT__/$FILE_LIST}"
 
 # --- 5. Run the dream ---
 log "starting dream..."
-if claude --print --dangerously-skip-permissions --model haiku -p "$PROJECT_DIR" "$RENDERED"; then
+if (cd "$PROJECT_DIR" && claude --print --verbose --output-format stream-json --dangerously-skip-permissions --model haiku "$RENDERED"); then
   # --- 6. Update timestamp on success ---
   touch "$LAST_RUN_FILE"
   log "dream complete"

@@ -58,13 +58,13 @@ The container is locked down to prevent escape while giving Claude full freedom 
 
 | Environment variable | Default | Description |
 |---|---|---|
-| `PROJECT_DIR` | `/home/claude/workspace` | Working directory for Claude |
+| `PROJECT_DIR` | `/home/ubuntu/workspace` | Working directory for Claude |
 | `SCHEDULER_API_PORT` | `8791` | Scheduler HTTP API port |
 | `SCHEDULER_CHANNEL_PORT` | `8790` | MCP channel HTTP listener port |
 
 ```bash
 # Use a custom project directory
-docker compose run -e PROJECT_DIR=/home/claude/myproject claude
+docker compose run -e PROJECT_DIR=/home/ubuntu/myproject claude
 ```
 
 ## Managing the container

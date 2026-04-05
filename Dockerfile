@@ -16,27 +16,27 @@ RUN apt-get update && apt-get install -y \
     jq \
     expect \
     cron \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -s /bin/bash claude \
-    && echo "claude ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/claude \
-    && chmod 0440 /etc/sudoers.d/claude
+RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \
+    && chmod 0440 /etc/sudoers.d/ubuntu
 
-USER claude
+USER ubuntu
 RUN git config --global init.defaultBranch main \
     && git config --global user.name "Claude Code" \
     && git config --global user.email "noreply@anthropic.com"
 RUN curl -fsSL https://claude.ai/install.sh | bash
-ENV PATH="/home/claude/.local/bin:$PATH"
+ENV PATH="/home/ubuntu/.local/bin:$PATH"
 
 COPY --from=channel-build /app/scheduler-channel /opt/scheduler-channel/scheduler-channel
 
-COPY --chown=claude:claude dream/ /opt/dream/
+COPY --chown=ubuntu:ubuntu dream/ /opt/dream/
 RUN chmod +x /opt/dream/dream.sh
 
-COPY --chown=claude:claude entrypoint.sh /opt/entrypoint.sh
+COPY --chown=ubuntu:ubuntu entrypoint.sh /opt/entrypoint.sh
 RUN chmod +x /opt/entrypoint.sh
 
-WORKDIR /home/claude
+WORKDIR /home/ubuntu
 
 ENTRYPOINT ["tini", "--", "/opt/entrypoint.sh"]
