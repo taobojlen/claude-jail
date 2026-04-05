@@ -1,6 +1,6 @@
 # claude-jail
 
-A sandboxed Docker container for running a persistent Claude Code agent via [Remote Control](https://code.claude.com/docs/en/remote-control). Claude has full sudo access inside the container but cannot escape it. You interact through Matrix, but can alternatively use claude.ai/code or the Claude mobile app (or you can write any other integration you like).
+A sandboxed Docker container for running a persistent Claude Code agent via [Channels](https://code.claude.com/docs/en/channels-reference). Claude has full sudo access inside the container but cannot escape it. You interact through Matrix, but can alternatively use claude.ai/code or the Claude mobile app (or you can write any other integration you like).
 
 ## Quick start
 
