@@ -93,6 +93,17 @@ cd "$PROJECT_DIR"
 
 export CLAUDE_CODE_DISABLE_CRON=1
 
+# Find the oldest session to resume (so one-off shells don't displace the main session)
+RESUME_FLAG=""
+ENCODED_DIR=$(echo "$PROJECT_DIR" | sed 's|/|-|g; s|^-||')
+SESSION_DIR="$HOME/.claude/projects/$ENCODED_DIR"
+if [ -d "$SESSION_DIR" ]; then
+    OLDEST_SESSION=$(ls -tr "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1 | xargs -I{} basename {} .jsonl)
+    if [ -n "$OLDEST_SESSION" ]; then
+        RESUME_FLAG="--resume $OLDEST_SESSION"
+    fi
+fi
+
 if [ "${1:-}" = "login" ]; then
     exec claude
 else
@@ -100,5 +111,6 @@ else
     (sleep 3 && printf '\n') &
     exec claude \
         --permission-mode bypassPermissions \
-        --dangerously-load-development-channels server:scheduler
+        --dangerously-load-development-channels server:scheduler \
+        $RESUME_FLAG
 fi
