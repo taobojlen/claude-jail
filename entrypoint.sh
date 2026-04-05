@@ -15,9 +15,14 @@ fi
 # Merge required fields into ~/.claude.json without clobbering existing auth state.
 [ -f ~/.claude.json ] || echo '{}' > ~/.claude.json
 tmp=$(mktemp)
-jq --arg dir "$PROJECT_DIR" '
+if [ "${1:-}" = "login" ]; then
+    REMOTE_CONTROL="false"
+else
+    REMOTE_CONTROL="true"
+fi
+jq --arg dir "$PROJECT_DIR" --argjson rc "$REMOTE_CONTROL" '
   .hasCompletedOnboarding = true |
-  .remoteControlAtStartup = true |
+  .remoteControlAtStartup = $rc |
   .remoteDialogSeen = true |
   .projects[$dir] = (.projects[$dir] // {}) * {
     hasTrustDialogAccepted: true,
