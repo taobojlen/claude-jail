@@ -104,7 +104,7 @@ else
     cat > /tmp/accept-prompt.exp <<'EXPECT'
 set timeout -1
 log_user 1
-spawn claude --model sonnet --permission-mode bypassPermissions --dangerously-load-development-channels server:scheduler
+spawn claude --model sonnet --permission-mode bypassPermissions --remote-control-session-name-prefix agent --dangerously-load-development-channels server:scheduler
 sleep 10
 send "\r"
 expect eof
