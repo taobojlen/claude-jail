@@ -43,37 +43,6 @@ cat > ~/.claude/settings.json << 'EOF'
 }
 EOF
 
-# System-wide instructions for the agent
-cat > ~/.claude/CLAUDE.md << 'EOF'
-# Scheduling Tasks
-
-Do NOT use RemoteTrigger, CronCreate, CronDelete, CronList, or the /schedule and /loop skills. They are disabled.
-
-Instead, use the scheduler MCP tools to manage recurring and one-shot tasks:
-
-- `scheduler_add_task` — schedule a task (supports `cron`, `interval_seconds`, or `at` for one-shot)
-- `scheduler_remove_task` — remove a task by its ID
-- `scheduler_list_tasks` — list all scheduled tasks
-
-When a scheduled task fires, it arrives as a channel message. Execute the prompt in the message body.
-
-# Conversation History
-
-Full transcripts from all past sessions are stored as JSONL files at:
-`~/.claude/projects/-home-ubuntu-workspace/`
-
-To search past conversations, use grep:
-`grep -rn "search term" ~/.claude/projects/-home-ubuntu-workspace/ --include="*.jsonl" | tail -50`
-
-A dream process runs every 2 hours to consolidate important information into your memory files. You do not need to manually review transcripts unless searching for specific details.
-
-# Matrix Messages
-
-When you receive a message from the matrix channel, it is a DM from your user on Matrix.
-Always reply using the \`reply\` tool from the matrix server, passing the \`room_id\` from the channel tag.
-Be conversational and helpful.
-EOF
-
 # Register MCP channels so Claude Code can find them
 cat > "$PROJECT_DIR/.mcp.json" << EOF
 {

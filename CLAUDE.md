@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Rules
+
+- **NEVER delete files inside the container (or its volumes) without explicit user approval.** The container has persistent state that may be irreplaceable. Always ask first.
+
 ## Project Overview
 
 **claude-jail** is a sandboxed Docker environment for running a persistent Claude Code agent. Claude gets full sudo inside the container but cannot escape it.

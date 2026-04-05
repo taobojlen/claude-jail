@@ -14,9 +14,9 @@ export const server = new Server(
       tools: {},
     },
     instructions:
-      'Messages arrive as <channel source="matrix" room_id="..." sender="...">. ' +
+      'Messages arrive as <channel source="matrix" sender="...">. ' +
       "These are DMs from your user on Matrix. " +
-      "Reply with the reply tool, passing the room_id from the tag.",
+      "Reply with the reply tool.",
   },
 );
 
@@ -33,16 +33,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: "object" as const,
         properties: {
-          room_id: {
-            type: "string",
-            description: "The Matrix room to reply in (from the channel tag).",
-          },
           text: {
             type: "string",
             description: "The message text to send.",
           },
         },
-        required: ["room_id", "text"],
+        required: ["text"],
       },
     },
   ],
@@ -50,15 +46,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (req) => {
   if (req.params.name === "reply") {
-    const { room_id, text } = req.params.arguments as {
-      room_id: string;
+    const { text } = req.params.arguments as {
       text: string;
     };
 
     const res = await fetch(`${getApiBase()}/send`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ room_id, body: text }),
+      body: JSON.stringify({ body: text }),
     });
 
     if (!res.ok) {
@@ -98,13 +93,11 @@ export function startHttpServer(port: number) {
 
       const parsed = JSON.parse(body) as {
         sender?: string;
-        room_id?: string;
         body?: string;
       };
 
       const meta: Record<string, string> = {};
       if (parsed.sender) meta.sender = parsed.sender;
-      if (parsed.room_id) meta.room_id = parsed.room_id;
 
       await server.notification({
         method: "notifications/claude/channel",
