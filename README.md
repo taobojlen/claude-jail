@@ -1,6 +1,6 @@
 # claude-jail
 
-A sandboxed Docker container for running a persistent Claude Code agent via [Remote Control](https://code.claude.com/docs/en/remote-control). Claude has full sudo access inside the container but cannot escape it. You interact through claude.ai/code or the Claude mobile app.
+A sandboxed Docker container for running a persistent Claude Code agent via [Remote Control](https://code.claude.com/docs/en/remote-control). Claude has full sudo access inside the container but cannot escape it. You interact through Matrix, but can alternatively use claude.ai/code or the Claude mobile app (or you can write any other integration you like).
 
 ## Quick start
 
@@ -24,40 +24,6 @@ On the very first launch, Claude Code has no credentials:
 4. Once logged in, exit the session (Ctrl-C) and start the server: `docker compose up --build -d`
 
 OAuth tokens persist in a named Docker volume (`claude-home`). You only need to log in once.
-
-## Architecture
-
-Two Docker containers orchestrated via docker-compose:
-
-1. **claude** (Ubuntu 24.04) — Claude Code in Remote Control server mode
-   - **Non-root user** (`claude`) with passwordless sudo — full control inside the container, no escape
-   - **tini** as PID 1 — reaps zombies, forwards signals
-   - **`--permission-mode bypassPermissions`** — all tool permission prompts bypassed
-   - **Scheduler MCP channel** — provides `scheduler_add_task`, `scheduler_remove_task`, `scheduler_list_tasks` tools
-   - **cron** daemon — runs a dream process every 2 hours to consolidate conversation history into memory
-   - **Named volume** — `claude-home` for Claude state
-
-2. **scheduler** (Bun) — Lightweight task scheduler
-   - HTTP API for CRUD on tasks, 10-second poll loop that fires due tasks via the MCP channel
-   - Stores tasks in `/data/tasks.json`
-   - Supports cron expressions, intervals, and one-shot timestamps
-
-3. **matrix** (Bun) — Matrix chat bridge with E2EE
-   - Connects to a Matrix homeserver and listens for DMs from a configured user
-   - Forwards messages to Claude via an MCP channel; Claude replies using the `reply` tool
-   - Crypto state persisted in a named volume (`matrix-data`)
-
-## Security
-
-The container is locked down to prevent escape while giving Claude full freedom inside:
-
-| Control | Setting |
-|---|---|
-| Capabilities | `cap_drop: ALL`, only CHOWN/DAC_OVERRIDE/FOWNER/SETGID/SETUID added back |
-| Network | Default bridge network (outbound internet works, no host network access) |
-| Resources | 4GB RAM, 2 CPUs, 512 process limit |
-| Filesystem | `/tmp` as tmpfs (512MB) |
-| Restart | `unless-stopped` — auto-restarts on crash, stays down on explicit stop |
 
 ## Matrix bridge setup
 
@@ -105,11 +71,6 @@ Element will show the bot's SDK session as unverified. To cross-sign it:
 | `MATRIX_USER_ID` | — | Your Matrix user ID to accept DMs from (required for Matrix) |
 | `MATRIX_API_PORT` | `8793` | Matrix bot HTTP API port |
 | `MATRIX_CHANNEL_PORT` | `8792` | Matrix MCP channel HTTP listener port |
-
-```bash
-# Use a custom project directory
-docker compose run -e PROJECT_DIR=/home/ubuntu/myproject claude
-```
 
 ## Managing the container
 
