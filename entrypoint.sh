@@ -13,38 +13,19 @@ if [ ! -d "$PROJECT_DIR/.git" ]; then
 fi
 
 # Merge required fields into ~/.claude.json without clobbering existing auth state.
-# On first run (no file yet), create the skeleton. On subsequent runs, patch in place.
-if [ -f ~/.claude.json ]; then
-    tmp=$(mktemp)
-    jq --arg dir "$PROJECT_DIR" '
-      .hasCompletedOnboarding = true |
-      .remoteControlAtStartup = true |
-      .remoteDialogSeen = true |
-      .projects[$dir] = (.projects[$dir] // {}) * {
-        hasTrustDialogAccepted: true,
-        hasCompletedProjectOnboarding: true,
-        hasTrustDialogHooksAccepted: true,
-        allowedTools: ((.projects[$dir].allowedTools) // [])
-      }
-    ' ~/.claude.json > "$tmp" && mv "$tmp" ~/.claude.json
-else
-    cat > ~/.claude.json << EOF
-{
-  "hasCompletedOnboarding": true,
-  "remoteControlAtStartup": true,
-  "remoteDialogSeen": true,
-  "shiftEnterKeyBindingInstalled": true,
-  "projects": {
-    "$PROJECT_DIR": {
-      "hasTrustDialogAccepted": true,
-      "hasCompletedProjectOnboarding": true,
-      "hasTrustDialogHooksAccepted": true,
-      "allowedTools": []
-    }
+[ -f ~/.claude.json ] || echo '{}' > ~/.claude.json
+tmp=$(mktemp)
+jq --arg dir "$PROJECT_DIR" '
+  .hasCompletedOnboarding = true |
+  .remoteControlAtStartup = true |
+  .remoteDialogSeen = true |
+  .projects[$dir] = (.projects[$dir] // {}) * {
+    hasTrustDialogAccepted: true,
+    hasCompletedProjectOnboarding: true,
+    hasTrustDialogHooksAccepted: true,
+    allowedTools: ((.projects[$dir].allowedTools) // [])
   }
-}
-EOF
-fi
+' ~/.claude.json > "$tmp" && mv "$tmp" ~/.claude.json
 
 # Suppress "WARNING: running in Bypass Permissions mode" dialog
 mkdir -p ~/.claude
@@ -83,7 +64,6 @@ A dream process runs every 2 hours to consolidate important information into you
 EOF
 
 # Register the scheduler MCP channel so Claude Code can find it
-mkdir -p "$PROJECT_DIR"
 cat > "$PROJECT_DIR/.mcp.json" << EOF
 {
   "mcpServers": {
