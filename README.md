@@ -76,6 +76,23 @@ The Matrix bridge lets you DM your Claude bot over an E2EE Matrix chat.
 
 The bot only responds to DMs from the configured `MATRIX_USER_ID`. Crypto keys persist across restarts in the `matrix-data` volume.
 
+### Verifying the bot's E2EE session
+
+Element will show the bot's SDK session as unverified. To cross-sign it:
+
+1. Log into Element as the bot account and set up cross-signing (Security & Privacy)
+2. Save the recovery key Element gives you
+3. Add to `.env`:
+   ```
+   MATRIX_RECOVERY_KEY=your recovery key here
+   ```
+4. Run the verification script:
+   ```bash
+   docker compose cp matrix/verify-bot.ts matrix:/app/verify-bot.ts
+   docker compose exec -e MATRIX_RECOVERY_KEY="$MATRIX_RECOVERY_KEY" matrix bun run /app/verify-bot.ts
+   ```
+5. Refresh Element — the SDK session should now show as verified
+
 ## Configuration
 
 | Environment variable | Default | Description |
