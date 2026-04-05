@@ -21,6 +21,27 @@ if (!HOMESERVER_URL || !ACCESS_TOKEN || !ALLOWED_USER_ID) {
 // Track the most recent DM room for replies
 let lastRoomId: string | null = null;
 
+// Typing indicator keepalive (Matrix typing expires after ~30s)
+let typingInterval: ReturnType<typeof setInterval> | null = null;
+
+function startTyping(roomId: string) {
+  stopTyping();
+  client.setTyping(roomId, true, 30000).catch(() => {});
+  typingInterval = setInterval(() => {
+    client.setTyping(roomId, true, 30000).catch(() => {});
+  }, 25000);
+}
+
+function stopTyping() {
+  if (typingInterval) {
+    clearInterval(typingInterval);
+    typingInterval = null;
+  }
+  if (lastRoomId) {
+    client.setTyping(lastRoomId, false).catch(() => {});
+  }
+}
+
 // Set up storage providers
 const storage = new SimpleFsStorageProvider(STORAGE_FILE);
 const crypto = new RustSdkCryptoStorageProvider(CRYPTO_DIR);
@@ -47,6 +68,9 @@ client.on("room.message", async (roomId: string, event: any) => {
 
   lastRoomId = roomId;
   console.log(`Message from ${event.sender} in ${roomId}: ${body.slice(0, 100)}`);
+
+  // Start typing immediately — hooks will keep it alive during tool calls
+  startTyping(roomId);
 
   // Forward to the matrix channel inside the claude container
   try {
@@ -86,12 +110,30 @@ const server = Bun.serve({
       }
 
       try {
+        stopTyping();
         const eventId = await client.sendText(targetRoom, body);
         return Response.json({ ok: true, event_id: eventId });
       } catch (err: any) {
         console.error(`Failed to send message:`, err);
         return Response.json({ error: err.message }, { status: 500 });
       }
+    }
+
+    if (url.pathname === "/typing" && req.method === "POST") {
+      const { typing = true, room_id } = (await req.json()) as {
+        typing?: boolean;
+        room_id?: string;
+      };
+      const targetRoom = room_id || lastRoomId;
+      if (!targetRoom) {
+        return Response.json({ ok: false, error: "No room" }, { status: 400 });
+      }
+      if (typing) {
+        startTyping(targetRoom);
+      } else {
+        stopTyping();
+      }
+      return Response.json({ ok: true });
     }
 
     if (url.pathname === "/health" && req.method === "GET") {
