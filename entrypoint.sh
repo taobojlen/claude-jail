@@ -70,6 +70,16 @@ Instead, use the scheduler MCP tools to manage recurring and one-shot tasks:
 - `scheduler_list_tasks` — list all scheduled tasks
 
 When a scheduled task fires, it arrives as a channel message. Execute the prompt in the message body.
+
+# Conversation History
+
+Full transcripts from all past sessions are stored as JSONL files at:
+`~/.claude/projects/-home-claude-workspace/`
+
+To search past conversations, use grep:
+`grep -rn "search term" ~/.claude/projects/-home-claude-workspace/ --include="*.jsonl" | tail -50`
+
+A dream process runs every 2 hours to consolidate important information into your memory files. You do not need to manually review transcripts unless searching for specific details.
 EOF
 
 # Register the scheduler MCP channel so Claude Code can find it
@@ -88,6 +98,10 @@ cat > "$PROJECT_DIR/.mcp.json" << EOF
   }
 }
 EOF
+
+# Install dream cron job (runs every 2 hours) and start cron daemon
+(echo "0 */2 * * * PROJECT_DIR=$PROJECT_DIR /opt/dream/dream.sh >> /tmp/dream.log 2>&1") | crontab -
+sudo cron
 
 cd "$PROJECT_DIR"
 

@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     tini \
     jq \
     expect \
+    cron \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -s /bin/bash claude \
@@ -29,6 +30,9 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/claude/.local/bin:$PATH"
 
 COPY --from=channel-build /app/scheduler-channel /opt/scheduler-channel/scheduler-channel
+
+COPY --chown=claude:claude dream/ /opt/dream/
+RUN chmod +x /opt/dream/dream.sh
 
 COPY --chown=claude:claude entrypoint.sh /opt/entrypoint.sh
 RUN chmod +x /opt/entrypoint.sh
