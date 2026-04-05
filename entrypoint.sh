@@ -108,7 +108,7 @@ cd "$PROJECT_DIR"
 export CLAUDE_CODE_DISABLE_CRON=1
 
 if [ "${1:-}" = "login" ]; then
-    exec claude
+    exec claude --model sonnet
 else
     # Auto-accept the development channels confirmation prompt.
     # Pattern matching won't work (Ink TUI uses ANSI escapes), so we
@@ -116,7 +116,7 @@ else
     cat > /tmp/accept-prompt.exp <<'EXPECT'
 set timeout -1
 log_user 1
-spawn claude --permission-mode bypassPermissions --dangerously-load-development-channels server:scheduler
+spawn claude --model sonnet --permission-mode bypassPermissions --dangerously-load-development-channels server:scheduler
 sleep 10
 send "\r"
 expect eof
